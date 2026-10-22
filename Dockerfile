@@ -249,6 +249,8 @@ RUN mkdir -p /etc/cont-init.d && \
         > /etc/cont-init.d/01-hermes-setup && \
     chmod +x /etc/cont-init.d/01-hermes-setup
 COPY --chmod=0755 docker/cont-init.d/015-supervise-perms /etc/cont-init.d/015-supervise-perms
+# HUB OVERRIDE: ép gateway Telegram auto-start mỗi boot (chạy trước 02-reconcile).
+COPY --chmod=0755 docker/cont-init.d/018-force-gateway-running /etc/cont-init.d/018-force-gateway-running
 COPY --chmod=0755 docker/cont-init.d/02-reconcile-profiles /etc/cont-init.d/02-reconcile-profiles
 
 # ---------- Runtime ----------

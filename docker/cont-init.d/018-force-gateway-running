@@ -1,0 +1,24 @@
+#!/command/with-contenv sh
+# shellcheck shell=sh
+# HUB OVERRIDE — gateway Telegram phải LUÔN tự bật sau mỗi recreate/restart.
+#
+# Mặc định upstream: gateway/run.py ghi gateway_state="stopped" khi nhận SIGTERM
+# (lúc container stop/recreate). Boot sau, 02-reconcile-profiles đọc state đó thấy
+# "stopped" → chỉ register slot, KHÔNG auto-start → bot Telegram chết im (dashboard
+# vẫn sống nên dễ tưởng OK). Trên hub này gia đình dùng bot, muốn nó luôn chạy.
+#
+# Script này ép gateway_state="running" TRƯỚC reconcile nên gateway-default luôn
+# được auto-up. Đặt tên 018- để chạy SAU 01-hermes-setup (seed $HERMES_HOME) và
+# 015-supervise-perms, nhưng TRƯỚC 02-reconcile-profiles (lexicographic: 018 < 02).
+#
+# Đánh đổi có chủ đích: kể cả khi chủ động Stop gateway trên dashboard, lần boot kế
+# nó vẫn bật lại. Đúng ý muốn cho hub (bot luôn online). Format JSON khớp hệt cách
+# stage2-hook.sh seed HERMES_GATEWAY_BOOTSTRAP_STATE; gateway sẽ tự ghi lại đầy đủ
+# pid/platforms khi start.
+set -e
+
+STATE="${HERMES_HOME:-/opt/data}/gateway_state.json"
+printf '{"gateway_state":"running"}\n' > "$STATE"
+chown hermes:hermes "$STATE" 2>/dev/null || true
+chmod 644 "$STATE"
+echo "[018-force-gateway-running] seeded gateway_state=running (hub: always auto-start)"
